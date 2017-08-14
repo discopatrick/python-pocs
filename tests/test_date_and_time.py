@@ -4,6 +4,7 @@ import os
 from unittest import TestCase
 
 from freezegun import freeze_time
+from tzlocal import get_localzone
 
 class DateTimeTest(TestCase):
 
@@ -19,7 +20,19 @@ class DateTimeTest(TestCase):
                                            minute=0,
                                            second=0))
 
-    def test_set_timezone(self):
+    def test_set_TZ_environment_variable(self):
+
+        # ensure the TZ environment variable does not exist
+        if os.environ.get('TZ'):
+            del os.environ['TZ']
+
+        # call tzset to set timezone to system default
+        time.tzset()
+
+        # get the system default tzname so we can check it gets set back to
+        # its original value at the end of this test
+        original_tzname = time.tzname
+
         os.environ['TZ'] = 'Europe/London'
         time.tzset()
         self.assertEqual(time.tzname, ('GMT', 'BST'))
@@ -27,3 +40,9 @@ class DateTimeTest(TestCase):
         os.environ['TZ'] = 'US/Pacific'
         time.tzset()
         self.assertEqual(time.tzname, ('PST', 'PDT'))
+
+        # reset timezone back to original value
+        del os.environ['TZ']
+        time.tzset()
+
+        self.assertEqual(time.tzname, original_tzname)
