@@ -46,3 +46,32 @@ class DateTimeTest(TestCase):
         time.tzset()
 
         self.assertEqual(time.tzname, original_tzname)
+
+    def test_timezone_epochs(self):
+
+        os.environ['TZ'] = 'Europe/London'
+        time.tzset()
+        epoch_datetime = datetime.datetime.fromtimestamp(0)
+        self.assertEqual(epoch_datetime,
+                         datetime.datetime(year=1970,
+                                           month=1,
+                                           day=1,
+                                           hour=1,  # +01:00
+                                           # (DST was all year round in 1970)
+                                           minute=0,
+                                           second=0))
+
+        os.environ['TZ'] = 'America/Los_Angeles'
+        time.tzset()
+        epoch_datetime = datetime.datetime.fromtimestamp(0)
+        self.assertEqual(epoch_datetime,
+                         datetime.datetime(year=1969,
+                                           month=12,
+                                           day=31,
+                                           hour=16,  # -08:00
+                                           minute=0,
+                                           second=0))
+
+        # reset timezone back to system default
+        del os.environ['TZ']
+        time.tzset()
